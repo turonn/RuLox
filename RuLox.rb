@@ -15,10 +15,12 @@ class RuLox
   end
 
   def run_prompt
+    puts "type 'exit' (without quotes) to exit"
     puts "now reading input..."
     input = ''
-    until input == 'exit'
+    while true 
       input = $stdin.gets
+      break if input == "exit\n"
 
       puts "> #{input}"
     end
