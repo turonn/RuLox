@@ -5,7 +5,7 @@ module TokenType
     RIGHT_PAREN = 'right_paren',
     LEFT_BRACE = 'left_brace',
     RIGHT_BRACE = 'right_brace',
-    CARROT = 'carrot'
+    CARROT = 'carrot',
     COMMA = 'comma',
     DOT = 'dot',
     MINUS = 'minus',
@@ -61,10 +61,10 @@ module TokenType
     CARROT, MINUS, PLUS, SLASH, STAR,
 
     # openings
-    LEFT_PAREN, LEFT_BRACE, COMMA
+    LEFT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA
   ]
 
-  keywords = [
+  Keywords = [
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE
   ]
 end

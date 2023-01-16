@@ -1,4 +1,4 @@
-require_relative 'rulox'
+# require_relative 'ru_lox'
 require_relative 'token_type'
 require_relative 'token'
 
@@ -9,7 +9,7 @@ class Scanner
     @tokens = []
     @start = 0
     @current = 0
-    @line = 0
+    @line = 1
   end
 
   # return [Array[Token]]
@@ -26,7 +26,7 @@ class Scanner
   private
 
   def _scan_token
-    c = _advance
+    c = @source[@current]
     case c
       when '(' then _add_token(TokenType::LEFT_PAREN, nil)
       when ')' then _add_token(TokenType::RIGHT_PAREN, nil)
@@ -41,7 +41,7 @@ class Scanner
 
       # account for possible negative number
       when '-'
-        if (_is_at_beginning? || TokenType::PreceedingNegativeTokens.include?(_previous_token)) && _is_digit?(_peek)
+        if (_is_at_beginning? || TokenType::PreceedingNegativeTokens.include?(_previous_token&.type)) && _is_digit?(_peek)
           _number
         else
           _add_token(TokenType::MINUS, nil)
@@ -70,8 +70,8 @@ class Scanner
         end
 
       # ignore white space
-      when ' ', '\r', '\t' then nil
-      when '\n' then @line += 1
+      when ' ', "\r", "\t"
+      when "\n"then @line += 1
 
       # literals
       when '"' then _string
@@ -79,9 +79,10 @@ class Scanner
       when '_', /[[:alpha:]]/ then _identifier
         
       # errors
-      else RuLox.error(@line, "Unexpected character.")
+      else RuLox.error(@line, "Unexpected character. `#{c}`")
     end
 
+    @current += 1
   end
 
   def _string
@@ -100,12 +101,13 @@ class Scanner
   end
 
   def _number
-    while _is_digit?(_peek)
+    until !_is_digit?(_peek) || _is_at_end?
       _advance
     end
 
     if _peek == '.' && _is_digit?(_peek_next)
-      while _is_digit?(_peek)
+      @current += 1
+      until !_is_digit?(_peek) || _is_at_end?
         _advance
       end
     end
@@ -115,16 +117,16 @@ class Scanner
   end
 
   def _identifier
-    while _is_alpha_numperic?(_peek)
-      _advacne
+    until !_is_alpha_numperic?(_peek) || _is_at_end?
+      _advance
     end
+
     literal = @source[@start..@current]
-    type =  if TokenType::keywords.include?(literal)
+    type =  if TokenType::Keywords.include?(literal)
               literal
             else
               TokenType::IDENTIFIER
             end
-
 
     _add_token(type, literal)
   end
@@ -140,9 +142,8 @@ class Scanner
     @source[@current]
   end
 
-  def _previous_char
-    return '' if @current == 0
-    @source[@current - 1]
+  def _previous_token
+    @tokens.last
   end
 
   def _peek
@@ -180,6 +181,6 @@ class Scanner
   end
 
   def _is_at_end?
-    @current >= source.length
+    @current >= @source.length
   end
 end
