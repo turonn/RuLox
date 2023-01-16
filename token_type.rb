@@ -5,6 +5,7 @@ module TokenType
     RIGHT_PAREN = 'right_paren',
     LEFT_BRACE = 'left_brace',
     RIGHT_BRACE = 'right_brace',
+    CARROT = 'carrot'
     COMMA = 'comma',
     DOT = 'dot',
     MINUS = 'minus',
@@ -48,4 +49,22 @@ module TokenType
 
     EOF = 'eof'
   ].freeze
+
+  # these are the tokens that can preceed a negative number
+  PreceedingNegativeTokens = [
+    EQUAL,
+
+    # comparative
+    BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+
+    # operators
+    CARROT, MINUS, PLUS, SLASH, STAR,
+
+    # openings
+    LEFT_PAREN, LEFT_BRACE, COMMA
+  ]
+
+  keywords = [
+    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE
+  ]
 end
