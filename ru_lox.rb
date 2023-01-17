@@ -21,7 +21,7 @@ class RuLox
     run(file_contents)
 
     # don't actually execute the file if there is an error in it
-    return if @@had_error
+    exit(65) if @@had_error
   end
 
   def run_prompt
