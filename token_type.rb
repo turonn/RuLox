@@ -50,6 +50,10 @@ module TokenType
     EOF = 'eof'
   ].freeze
 
+  StartOfStatementTypes = [
+    CLASS, FUN, FOR, IF, PRINT, RETURN, VAR, WHILE
+  ]
+
   # these are the tokens that can preceed a negative number
   PreceedingNegativeTokens = [
     EQUAL,

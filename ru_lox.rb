@@ -1,4 +1,6 @@
 require_relative 'scanner'
+require_relative './parser/parser'
+require_relative './parser/ast_printer'
 
 class RuLox
   # @param args [Array[String]] command line arguments
@@ -47,9 +49,13 @@ class RuLox
     scanner = Scanner.new(source)
     tokens = scanner.scan_tokens
 
-    tokens.each do |token|
-      puts token.inspect
-    end
+    parser = Parser.new(tokens)
+    expression = parser.parse
+
+    return if @@had_error
+
+    ast_printer = AstPrinter.new
+    ast_printer.print(expression)
   end
 
   # @param line [Integer]
@@ -58,11 +64,22 @@ class RuLox
     report(line, "", message)
   end
 
+  # @param token [Token]
+  # @param message [String]
+  def self.parse_error(token, message)
+    where = if token.type == TokenType::EOF
+              "at end"
+            else
+              "at '#{token.lexeme}'"
+            end
+    report(token.line, where, message)
+  end
+
   # @param line [Integer]
   # @param where [String]
   # @param message [String]
   def self.report(line, where, message)
-    puts "[line #{line}] Error #{where} + #{message}"
+    puts "[line #{line}] Error #{where}: #{message}"
 
     @@had_error = true
   end
