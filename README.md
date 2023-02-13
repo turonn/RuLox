@@ -1,13 +1,13 @@
 # To Run
 
 ```
-ruby ./RuLox.rb
+ruby ./ru_lox.rb
 ```
 
 OR
 
 ```
-ruby ./RuLox.rb test_file.txt
+ruby ./ru_lox.rb test_file.txt
 ```
 
 # Credits
