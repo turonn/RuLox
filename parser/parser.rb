@@ -13,7 +13,7 @@ class Parser
   def parse
     begin
     _expression
-    rescue ParseError => e
+    rescue ParseError => error
       nil
     end
   end

@@ -1,3 +1,4 @@
+require_relative 'interpreter'
 require_relative 'scanner'
 require_relative './parser/parser'
 require_relative './parser/ast_printer'
@@ -5,7 +6,9 @@ require_relative './parser/ast_printer'
 class RuLox
   # @param args [Array[String]] command line arguments
   def initialize(args)
+    @@interpreter = Interpreter.new
     @@had_error = false
+    @@had_runtime_error = false
 
     case args.count
     when 0
@@ -24,6 +27,7 @@ class RuLox
 
     # don't actually execute the file if there is an error in it
     exit(65) if @@had_error
+    exit(70) if @@had_runtime_error
   end
 
   def run_prompt
@@ -41,6 +45,10 @@ class RuLox
       # we don't want a single typed error to kill an
       # interactive session
       @@had_error = false
+
+      # we don't really care about runtime errors in the REPL. If it
+      # errors, we just give them a new line and keep going.
+      @@had_runtime_error = false
     end
   end
 
@@ -52,10 +60,14 @@ class RuLox
     parser = Parser.new(tokens)
     expression = parser.parse
 
+    # stop if there was a syntax error
     return if @@had_error
 
-    ast_printer = AstPrinter.new
-    ast_printer.print(expression)
+    @@interpreter.interpret(expression)
+
+    # use this printer to get an look into internals
+    # ast_printer = AstPrinter.new
+    # ast_printer.print(expression)
   end
 
   # @param line [Integer]
@@ -67,12 +79,18 @@ class RuLox
   # @param token [Token]
   # @param message [String]
   def self.parse_error(token, message)
-    where = if token.type == TokenType::EOF
-              "at end"
-            else
-              "at '#{token.lexeme}'"
-            end
+    where = token.type == TokenType::EOF ? "at end" :  "at '#{token.lexeme}'"
+
     report(token.line, where, message)
+  end
+
+  # @param error [RuLoxRuntimeError]
+  def self.runtime_error(error)
+    token = error.token
+    where = token.type == TokenType::EOF ? "at end" :  "at '#{token.lexeme}'"
+
+    puts "[line #{token.line}] Error #{where}: #{error.message}"
+    @@had_runtime_error = true
   end
 
   # @param line [Integer]

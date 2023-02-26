@@ -113,7 +113,7 @@ class Scanner
     end
 
     literal = @source[@start..@current]
-    _add_token(TokenType::NUMBER, literal)
+    _add_token(TokenType::NUMBER, literal.to_f)
   end
 
   def _identifier

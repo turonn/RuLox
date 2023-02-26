@@ -3,14 +3,15 @@ class Expr
   def accept(visitor)
     raise NotImplementedError
   end
+
+  class Visitor
+    def visit_binary_expr(expr); end
+    def visit_grouping_expr(expr); end
+    def visit_literal_expr(expr); end
+    def visit_unary_expr(expr); end
+  end
 end
 
-class Visitor
-  def visit_binary_expr(expr); end
-  def visit_grouping_expr(expr); end
-  def visit_literal_expr(expr); end
-  def visit_unary_expr(expr); end
-end
 
 class Binary < Expr
   attr_reader :left, :operator, :right
@@ -24,7 +25,7 @@ class Binary < Expr
     @right = right
   end
 
-  # @param visitor [Visitor]
+  # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_binary_expr(self)
   end
@@ -38,7 +39,7 @@ class Grouping < Expr
     @expression = expression
   end
 
-  # @param visitor [Visitor]
+  # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_grouping_expr(self)
   end
@@ -52,7 +53,7 @@ class Literal < Expr
     @value = value
   end
 
-  # @param visitor [Visitor]
+  # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_literal_expr(self)
   end
@@ -68,7 +69,7 @@ class Unary < Expr
     @right = right
   end
 
-  # @param visitor [Visitor]
+  # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_unary_expr(self)
   end

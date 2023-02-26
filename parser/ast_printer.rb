@@ -1,5 +1,5 @@
 require_relative './expr'
-class AstPrinter < Visitor
+class AstPrinter < Expr::Visitor
   # @param expression [Expr]
   # @return [String]
   def print(expression)
