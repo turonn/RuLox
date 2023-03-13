@@ -4,7 +4,7 @@ class Expr
     raise NotImplementedError
   end
 
-  class Visitor
+  module Visitor
     def visit_binary_expr(expr); end
     def visit_grouping_expr(expr); end
     def visit_literal_expr(expr); end

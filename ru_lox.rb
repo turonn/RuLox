@@ -58,12 +58,12 @@ class RuLox
     tokens = scanner.scan_tokens
 
     parser = Parser.new(tokens)
-    expression = parser.parse
+    statements = parser.parse
 
     # stop if there was a syntax error
     return if @@had_error
 
-    @@interpreter.interpret(expression)
+    @@interpreter.interpret(statements)
 
     # use this printer to get an look into internals
     # ast_printer = AstPrinter.new

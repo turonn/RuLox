@@ -1,12 +1,15 @@
 require_relative './parser/expr'
+require_relative './parser/stmt'
 require_relative './errors/ru_lox_runtime_error'
 
-class Interpreter < Expr::Visitor
+class Interpreter
+  include Expr::Visitor
+  include Stmt::Visitor
 
-  def interpret(expression)
+  # @param statements [Array<Stmt>]
+  def interpret(statements)
     begin
-    value = _evaluate(expression)
-    puts _stringify(value)
+      statements.each { |statement| _execute(statement) }
     rescue RuLoxRuntimeError => error
       RuLox.runtime_error(error)
     end
@@ -84,7 +87,23 @@ class Interpreter < Expr::Visitor
     end
   end
 
+  # @param stmt [Stmt]
+  def visit_expression_stmt(stmt)
+    _evaluate(stmt.expression)
+  end
+
+  # @param stmt [Stmt]
+  def visit_print_stmt(stmt)
+    value = _evaluate(stmt.expression)
+    puts _stringify(value)
+  end
+
   private
+
+  # @param statement [Stmt]
+  def _execute(statement)
+    statement.accept(self)
+  end
 
   # @param expr [Expression]
   def _evaluate(expr)

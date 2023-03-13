@@ -1,5 +1,6 @@
 require_relative '../token_type'
 require_relative 'expr'
+require_relative 'stmt'
 
 class Parser
   ParseError = Class.new(RuntimeError)
@@ -12,13 +13,36 @@ class Parser
 
   def parse
     begin
-    _expression
+      statements = []
+      while !_is_at_end?
+        statements << _statement
+      end
     rescue ParseError => error
       nil
     end
+
+    statements
   end
 
   private
+
+  def _statement
+    return _print_statement if _match([TokenType::PRINT])
+
+    _expression_statement
+  end
+
+  def _print_statement
+    value = _expression
+    _consume(TokenType::SEMICOLON, "Expect ';' after value.")
+    Stmt::Print.new(value)
+  end
+
+  def _expression_statement
+    expr = _expression
+    _consume(TokenType::SEMICOLON, "Expect ';' after value.")
+    Stmt::Expression.new(expr)
+  end
 
   def _expression
     _equality
