@@ -5,9 +5,24 @@ class Stmt
   end
 
   module Visitor
+    def visit_block_stmt(expr); end
     def visit_expression_stmt(expr); end
     def visit_var_stmt(expr); end
     def visit_print_stmt(expr); end
+  end
+
+  class Block
+    attr_reader :statements
+
+    # @param statements [Array<Stmt>]
+    def initialize(statements)
+      @statements = statements
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_block_stmt(self)
+    end
   end
 
   class Expression

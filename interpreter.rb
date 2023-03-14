@@ -117,6 +117,11 @@ class Interpreter
     nil
   end
 
+  # @param block [Stmt]
+  def visit_block_stmt(block)
+    _evaluate_block(block, Environment.new(@environment))
+  end
+
   # @param stmt [Stmt]
   def visit_expression_stmt(stmt)
     _evaluate(stmt.expression)
@@ -138,6 +143,19 @@ class Interpreter
   # @param expr [Expression]
   def _evaluate(expr)
     expr.accept(self)
+  end
+
+  def _evaluate_block(block, environment)
+    previous_environment = @environment
+
+    begin
+      @environment = environment
+      block.statements.each { |stmt| _execute(stmt) }
+    rescue => e
+      puts e.message
+    end
+
+    @environment = previous_environment
   end
 
   # only `false` and `nil` are "falsey"

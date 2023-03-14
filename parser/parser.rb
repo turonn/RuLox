@@ -53,6 +53,7 @@ class Parser
 
   def _statement
     return _print_statement if _match([TokenType::PRINT])
+    return _block_statement if _match([TokenType::LEFT_BRACE])
 
     _expression_statement
   end
@@ -61,6 +62,17 @@ class Parser
     value = _expression
     _consume(TokenType::SEMICOLON, "Expect ';' after value.")
     Stmt::Print.new(value)
+  end
+
+  def _block_statement
+    statements = []
+
+    until _check(TokenType::RIGHT_BRACE) || _is_at_end?
+      statements << _declaration
+    end
+
+    _advance
+    Stmt::Block.new(statements)
   end
 
   def _expression_statement

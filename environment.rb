@@ -1,7 +1,10 @@
 require_relative './errors/ru_lox_runtime_error'
 class Environment
-  def initialize
+  attr_reader :enclosing
+
+  def initialize(enclosing = nil)
     @values = {}
+    @enclosing = enclosing
   end
 
   # @param name [String]
@@ -14,6 +17,9 @@ class Environment
   def get(name)
     return @values[name.lexeme] if @values.key?(name.lexeme)
 
+    # look to see if the variable is defined at a higher scope
+    return @enclosing.get(name) unless @enclosing.nil?
+
     raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
   end
 
@@ -21,9 +27,11 @@ class Environment
   # @param value [Object]
   def assign(name, value)
     if @values.key?(name.lexeme)
-      @values[name.lexeme] = value
-    else
-      raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
+      return @values[name.lexeme] = value
     end
+
+    return @enclosing.assign(name, value) unless @enclosing.nil?
+
+    raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
   end
 end
