@@ -15,7 +15,7 @@ class Parser
     begin
       statements = []
       while !_is_at_end?
-        statements << _statement
+        statements << _declaration
       end
     rescue ParseError => error
       nil
@@ -25,6 +25,29 @@ class Parser
   end
 
   private
+
+  def _declaration
+    begin
+      return _var_declaration if _match([TokenType::VAR])
+      _statement
+    rescue ParseError => error
+      _syncronize
+      return nil
+    end
+  end
+
+  def _var_declaration
+    name = _consume(TokenType::IDENTIFIER, "Expect variable name.")
+
+    initializer = if _match([TokenType::EQUAL])
+                    _expression
+                  else
+                    nil
+                  end
+
+    _consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.")
+    Stmt::Var.new(name, initializer)
+  end
 
   def _statement
     return _print_statement if _match([TokenType::PRINT])
@@ -124,6 +147,7 @@ class Parser
     return Literal.new(nil) if _match([TokenType::NIL])
 
     return Literal.new(_previous.literal) if _match([TokenType::NUMBER, TokenType::STRING])
+    return Expr::Variable.new(_previous) if _match([TokenType::IDENTIFIER])
 
     if _match([TokenType::LEFT_PAREN])
       expr = _expression

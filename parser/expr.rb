@@ -8,6 +8,7 @@ class Expr
     def visit_binary_expr(expr); end
     def visit_grouping_expr(expr); end
     def visit_literal_expr(expr); end
+    def visit_variable_expr(expr); end
     def visit_unary_expr(expr); end
   end
 end
@@ -56,6 +57,20 @@ class Literal < Expr
   # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_literal_expr(self)
+  end
+end
+
+class Variable < Expr
+  attr_reader :name
+
+  # @param name [Token]
+  def initialize(name)
+    @name = name
+  end
+
+  # @param visitor [Expr::Visitor]
+  def accept(visitor)
+    visitor.visit_variable_expr(self)
   end
 end
 
