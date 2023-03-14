@@ -93,6 +93,14 @@ class Interpreter
   end
 
   # @param expr [Expr]
+  def visit_assign_expr(expr)
+    value = _evaluate(expr.value)
+    @environment.assign(expr.name, value)
+
+    value
+  end
+
+  # @param expr [Expr]
   def visit_variable_expr(expr)
     @environment.get(expr.name)
   end

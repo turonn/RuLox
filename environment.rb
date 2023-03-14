@@ -16,4 +16,14 @@ class Environment
 
     raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
   end
+
+  # @param name [Token]
+  # @param value [Object]
+  def assign(name, value)
+    if @values.key?(name.lexeme)
+      @values[name.lexeme] = value
+    else
+      raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
+    end
+  end
 end

@@ -5,6 +5,7 @@ class Expr
   end
 
   module Visitor
+    def visit_assign_expr(expr); end
     def visit_binary_expr(expr); end
     def visit_grouping_expr(expr); end
     def visit_literal_expr(expr); end
@@ -13,6 +14,21 @@ class Expr
   end
 end
 
+class Assign < Expr
+  attr_reader :name, :value
+
+  # @param name[Token]
+  # @param value [Expr]
+  def initialize(name, value)
+    @name = name
+    @value = value
+  end
+
+  # @param visitor [Expr::Visitor]
+  def accept(visitor)
+    visitor.visit_assign_expr(self)
+  end
+end
 
 class Binary < Expr
   attr_reader :left, :operator, :right
