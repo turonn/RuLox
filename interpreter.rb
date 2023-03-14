@@ -1,3 +1,4 @@
+require_relative './environment'
 require_relative './parser/expr'
 require_relative './parser/stmt'
 require_relative './errors/ru_lox_runtime_error'
@@ -5,6 +6,10 @@ require_relative './errors/ru_lox_runtime_error'
 class Interpreter
   include Expr::Visitor
   include Stmt::Visitor
+
+  def initialize
+    @environment = Environment.new
+  end
 
   # @param statements [Array<Stmt>]
   def interpret(statements)
@@ -85,6 +90,23 @@ class Interpreter
     else
       raise RuLoxRuntimeError.new(expr.operator, "Unhandled binary operator within interpreter.")
     end
+  end
+
+  # @param expr [Expr]
+  def visit_variable_expr(expr)
+    @environment.get(expr.name)
+  end
+
+  # @param stmt [Stmt]
+  def visit_var_stmt(stmt)
+    value = if stmt.initializer.nil?
+              nil
+            else
+              _evaluate(stmt.initializer)
+            end
+
+    @environment.define(stmt.name.lexeme, value)
+    nil
   end
 
   # @param stmt [Stmt]

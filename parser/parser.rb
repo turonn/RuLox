@@ -1,9 +1,10 @@
 require_relative '../token_type'
+require_relative '../errors/ru_lox_runtime_error'
 require_relative 'expr'
 require_relative 'stmt'
 
 class Parser
-  ParseError = Class.new(RuntimeError)
+  ParseError = Class.new(RuLoxRuntimeError)
 
   # @param tokens [Array[Token]]
   def initialize(tokens)
@@ -37,7 +38,8 @@ class Parser
   end
 
   def _var_declaration
-    name = _consume(TokenType::IDENTIFIER, "Expect variable name.")
+    name = @tokens[@current]
+    _consume(TokenType::IDENTIFIER, "Expect variable name.")
 
     initializer = if _match([TokenType::EQUAL])
                     _expression
@@ -147,7 +149,7 @@ class Parser
     return Literal.new(nil) if _match([TokenType::NIL])
 
     return Literal.new(_previous.literal) if _match([TokenType::NUMBER, TokenType::STRING])
-    return Expr::Variable.new(_previous) if _match([TokenType::IDENTIFIER])
+    return Variable.new(_previous) if _match([TokenType::IDENTIFIER])
 
     if _match([TokenType::LEFT_PAREN])
       expr = _expression

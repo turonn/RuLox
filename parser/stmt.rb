@@ -9,48 +9,48 @@ class Stmt
     def visit_var_stmt(expr); end
     def visit_print_stmt(expr); end
   end
-end
 
-class Expression < Stmt
-  attr_reader :expression
+  class Expression
+    attr_reader :expression
 
-  # @param expression [Expr]
-  def initialize(expression)
-    @expression = expression
+    # @param expression [Expr]
+    def initialize(expression)
+      @expression = expression
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_expression_stmt(self)
+    end
   end
 
-  # @param visitor [Stmt::Visitor]
-  def accept(visitor)
-    visitor.visit_expression_stmt(self)
-  end
-end
+  class Var
+    attr_reader :name, :initializer
 
-class Var < Stmt
-  attr_reader :name, :initializer
+    # @param name [Token]
+    # @param initializer [Expr]
+    def initialize(name, initializer)
+      @name = name
+      @initializer = initializer
+    end
 
-  # @param name [Token]
-  # @param initializer [Expr]
-  def initialize(name, initializer)
-    @name = name
-    @initializer = initializer
-  end
-
-  # @param visitor [Stmt::Visitor]
-  def accept(visitor)
-    visitor.visit_expression_stmt(self)
-  end
-end
-
-class Print < Stmt
-  attr_reader :expression
-
-  # @param expression [Expr]
-  def initialize(expression)
-    @expression = expression
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_var_stmt(self)
+    end
   end
 
-  # @param visitor [Stmt::Visitor]
-  def accept(visitor)
-    visitor.visit_print_stmt(self)
+  class Print
+    attr_reader :expression
+
+    # @param expression [Expr]
+    def initialize(expression)
+      @expression = expression
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_print_stmt(self)
+    end
   end
 end

@@ -39,7 +39,10 @@ class RuLox
       break if input == "exit"
 
       puts "> #{input}"
-      run(input)
+      begin
+        run(input)
+      rescue
+      end
 
       # reset error handling while in the interactive mode
       # we don't want a single typed error to kill an
