@@ -86,7 +86,7 @@ class Parser
   end
 
   def _assignment
-    expr = _equality
+    expr = _ternary
 
     if _match([TokenType::EQUAL])
       equals = _previous
@@ -98,6 +98,21 @@ class Parser
       end
 
       _error(equals, "Invalid assignment target.")
+    end
+
+    expr
+  end
+
+  def _ternary
+    expr = _equality
+
+    if _match([TokenType::QUESTION])
+      condition = expr
+      truth_case = _equality
+      _consume(TokenType::COLON, "Expect ':' between truth and false cases.")
+      false_case = _equality
+
+      expr = Ternary.new(condition, truth_case, false_case)
     end
 
     expr

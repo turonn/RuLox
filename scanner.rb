@@ -38,6 +38,8 @@ class Scanner
       when ';' then _add_token(TokenType::SEMICOLON, nil)
       when '*' then _add_token(TokenType::STAR, nil)
       when '^' then _add_token(TokenType::CARROT, nil)
+      when '?' then _add_token(TokenType::QUESTION, nil)
+      when ':' then _add_token(TokenType::COLON, nil)
 
       # account for possible negative number
       when '-'

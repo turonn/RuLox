@@ -6,6 +6,7 @@ class Expr
 
   module Visitor
     def visit_assign_expr(expr); end
+    def visit_ternary_expr(expr); end
     def visit_binary_expr(expr); end
     def visit_grouping_expr(expr); end
     def visit_literal_expr(expr); end
@@ -27,6 +28,24 @@ class Assign < Expr
   # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_assign_expr(self)
+  end
+end
+
+class Ternary < Expr
+  attr_reader :condition, :truth_case, :false_case
+
+  # @param condition [Expr]
+  # @param truth_case[Token]
+  # @param false_case [Expr]
+  def initialize(condition, truth_case, false_case)
+    @condition = condition
+    @truth_case = truth_case
+    @false_case = false_case
+  end
+
+  # @param visitor [Expr::Visitor]
+  def accept(visitor)
+    visitor.visit_ternary_expr(self)
   end
 end
 

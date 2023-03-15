@@ -40,6 +40,14 @@ class Interpreter
       #some error
     end
   end
+
+  def visit_ternary_expr(expr)
+    if _evaluate(expr.condition)
+      _evaluate(expr.truth_case)
+    else
+      _evaluate(expr.false_case)
+    end
+  end
   
   def visit_binary_expr(expr)
     left = _evaluate(expr.left)
