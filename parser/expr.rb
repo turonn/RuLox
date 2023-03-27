@@ -9,6 +9,7 @@ class Expr
     def visit_ternary_expr(expr); end
     def visit_binary_expr(expr); end
     def visit_grouping_expr(expr); end
+    def visit_logical_expr(expr); end
     def visit_literal_expr(expr); end
     def visit_variable_expr(expr); end
     def visit_unary_expr(expr); end
@@ -78,6 +79,24 @@ class Grouping < Expr
   # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_grouping_expr(self)
+  end
+end
+
+class Logical < Expr
+  attr_reader :value
+
+  # @param left [Expr]
+  # @param operator [Token]
+  # @param right [Expr]
+  def initialize(left, operator, right)
+    @left = left
+    @operator = operator
+    @right = right
+  end
+
+  # @param visitor [Expr::Visitor]
+  def accept(visitor)
+    visitor.visit_logical_expr(self)
   end
 end
 

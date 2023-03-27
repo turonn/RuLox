@@ -7,8 +7,10 @@ class Stmt
   module Visitor
     def visit_block_stmt(expr); end
     def visit_expression_stmt(expr); end
+    def visit_if_stmt(expr); end
     def visit_var_stmt(expr); end
     def visit_print_stmt(expr); end
+    def visit_while_stmt(expr); end
   end
 
   class Block
@@ -39,6 +41,24 @@ class Stmt
     end
   end
 
+  class If
+    attr_reader :condition, :then_branch, :else_branch
+
+    # @param condition [Expr]
+    # @param then_branch [Stmt]
+    # @param else_branch [Stmt]
+    def initialize(condition, then_branch, else_branch)
+      @condition = condition
+      @then_branch = then_branch
+      @else_branch = else_branch
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_if_stmt(self)
+    end
+  end
+
   class Var
     attr_reader :name, :initializer
 
@@ -66,6 +86,22 @@ class Stmt
     # @param visitor [Stmt::Visitor]
     def accept(visitor)
       visitor.visit_print_stmt(self)
+    end
+  end
+
+  class While
+    attr_reader :condition, :body
+
+    # @param condition [Expr]
+    # @param body [Stmt]
+    def initialize(condition, body)
+      @condition = condition
+      @body = body
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_while_stmt(self)
     end
   end
 end

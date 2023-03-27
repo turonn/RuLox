@@ -52,16 +52,86 @@ class Parser
   end
 
   def _statement
+    return _for_statement if _match([TokenType::FOR])
+    return _if_statement if _match([TokenType::IF])
     return _print_statement if _match([TokenType::PRINT])
+    return _while_statement if _match([TokenType::WHILE])
     return _block_statement if _match([TokenType::LEFT_BRACE])
 
     _expression_statement
+  end
+
+  def _for_statement
+    _consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.")
+
+    # this is a Stmt
+    initializer = if _match([TokenType::SEMICOLON])
+                    nil
+                  elsif _match([TokenType::VAR])
+                    _var_declaration
+                  else
+                    _expression_statement
+                  end
+
+    # this is an Expr
+    condition = if _check(TokenType::SEMICOLON)
+                  Literal.new(true)
+                else
+                  _expression
+                end
+    _consume(TokenType::SEMICOLON, "Expect ';' after loop condition.")
+
+    # this is an Expr
+    increment = if _check(TokenType::SEMICOLON)
+                  nil
+                else
+                  _expression
+                end
+    _consume(TokenType::RIGHT_PAREN, "Expect ')' after for clauses.")
+
+    # this is a Stmt
+    body = _statement
+
+    # adds the increment to the end of the body to be repeated with each iteration
+    unless increment.nil?
+      body = Stmt::Block.new([body, Stmt::Expression.new(increment)])
+    end
+
+    # this creates the cycling through the body
+    body = Stmt::While.new(condition, body)
+
+    # pop the initializer on the front if there is one
+    unless initializer.nil?
+      body = Stmt::Block.new([initializer, body])
+    end
+
+    body
+  end
+
+  def _if_statement
+    _consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.")
+    condition = _expression
+    _consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.")
+
+    then_branch = _statement
+    else_branch = _match([TokenType::ELSE]) ? _statement : nil
+
+    Stmt::If.new(condition, then_branch, else_branch)
   end
 
   def _print_statement
     value = _expression
     _consume(TokenType::SEMICOLON, "Expect ';' after value.")
     Stmt::Print.new(value)
+  end
+
+  def _while_statement
+    _consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.")
+    condition = _expression
+    _consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.")
+    body = _statement
+
+    Stmt::While.new(condition, body)
   end
 
   def _block_statement
@@ -86,7 +156,7 @@ class Parser
   end
 
   def _assignment
-    expr = _ternary
+    expr = _or
 
     if _match([TokenType::EQUAL])
       equals = _previous
@@ -98,6 +168,30 @@ class Parser
       end
 
       _error(equals, "Invalid assignment target.")
+    end
+
+    expr
+  end
+
+  def _or
+    expr = _and
+
+    while _match([TokenType::OR])
+      operator = _previous
+      right = _and
+      expr = Logical.new(expr, operator, right)
+    end
+
+    expr
+  end
+
+  def _and
+    expr = _ternary
+
+    while _match([TokenType::AND])
+      operator = _previous
+      right = _ternary
+      expr = Logical.new(expr, operator, right)
     end
 
     expr

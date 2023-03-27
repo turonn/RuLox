@@ -1,12 +1,4 @@
-var a = "first";
-print a;
-{
-    var a = "second";
-    print a;
-    {
-        var a = "third";
-        print a;
-    }
-    print a;
-}
-print a;
+if (false)
+  print "wrong";
+else
+print "right";

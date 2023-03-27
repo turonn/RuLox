@@ -23,6 +23,18 @@ class Interpreter
   def visit_literal_expr(expr)
     expr.value
   end
+
+  def visit_logical_expr(expr)
+    left = _evaluate(expr.left)
+
+    if expr.operator == TokenType::OR
+      return left if _is_truthy?(left)
+    else # the AND case
+      return left unless _is_truthy?(left)
+    end
+
+    _evaluate(expr.right)
+  end
   
   def visit_grouping_expr(expr)
     _evaluate(expr.expression)
@@ -125,6 +137,15 @@ class Interpreter
     nil
   end
 
+  # @param stmt [Stmt]
+  def visit_while_stmt(stmt)
+    while _is_truthy?(_evaluate(stmt.condition))
+      _execute(stmt.body)
+    end
+
+    nil
+  end
+
   # @param block [Stmt]
   def visit_block_stmt(block)
     _evaluate_block(block, Environment.new(@environment))
@@ -133,6 +154,14 @@ class Interpreter
   # @param stmt [Stmt]
   def visit_expression_stmt(stmt)
     _evaluate(stmt.expression)
+  end
+
+  def visit_if_stmt(stmt)
+    if _is_truthy?(_evaluate(stmt.condition))
+      _execute(stmt.then_branch)
+    elsif !stmt.else_branch.nil?
+      _execute(stmt.else_branch)
+    end
   end
 
   # @param stmt [Stmt]
