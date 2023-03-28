@@ -20,6 +20,16 @@ class Interpreter
     end
   end
 
+  def interpret_expression(expression)
+    begin
+      value = _evaluate(expression)
+      # binding.pry
+      puts _stringify(value)
+    rescue RuLoxRuntimeError => error
+      RuLox.runtime_error(error)
+    end
+  end
+
   def visit_literal_expr(expr)
     expr.value
   end

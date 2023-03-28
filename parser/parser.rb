@@ -25,6 +25,14 @@ class Parser
     statements
   end
 
+  def parse_expression
+    begin
+      _expression
+    rescue ParseError => error
+      return nil
+    end
+  end
+
   private
 
   def _declaration
@@ -113,6 +121,9 @@ class Parser
     condition = _expression
     _consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.")
 
+    # if you want to assign variables inside of an if statment, you must do it in a block so it goes all the
+    # way back up to the _declaration call. Otherwise, the if statement only looks for _statement and lower
+    # and will error out if making a variable declaration.
     then_branch = _statement
     else_branch = _match([TokenType::ELSE]) ? _statement : nil
 

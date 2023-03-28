@@ -2,6 +2,7 @@ require_relative 'interpreter'
 require_relative 'scanner'
 require_relative './parser/parser'
 require_relative './parser/ast_printer'
+require 'pry'
 
 class RuLox
   # @param args [Array[String]] command line arguments
@@ -38,9 +39,8 @@ class RuLox
       input = $stdin.gets.chomp
       break if input == "exit"
 
-      puts "> #{input}"
       begin
-        run(input)
+        run(input, true)
       rescue
       end
 
@@ -56,17 +56,27 @@ class RuLox
   end
 
   # @param source [String]
-  def run(source)
+  def run(source, from_repel = false)
     scanner = Scanner.new(source)
     tokens = scanner.scan_tokens
 
     parser = Parser.new(tokens)
-    statements = parser.parse
 
-    # stop if there was a syntax error
-    return if @@had_error
+    if from_repel && !tokens.any? { |token| token.type == TokenType::SEMICOLON }
+      expression = parser.parse_expression
 
-    @@interpreter.interpret(statements)
+      # stop if tchere was a syntax error
+      return if @@had_error
+
+      @@interpreter.interpret_expression(expression)
+    else
+      statements = parser.parse
+
+      # stop if there was a syntax error
+      return if @@had_error
+
+      @@interpreter.interpret(statements)
+    end
 
     # use this printer to get an look into internals
     # ast_printer = AstPrinter.new
