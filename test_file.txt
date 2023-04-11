@@ -1,4 +1,5 @@
-if (false)
-  print "wrong";
-else
-print "right";
+fun sayHi(first, last) {
+    print "Hi, " + first + " " + last + "!";
+}
+
+sayHi("Nicholas", "Turon");

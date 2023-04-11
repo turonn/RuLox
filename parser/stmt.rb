@@ -7,6 +7,7 @@ class Stmt
   module Visitor
     def visit_block_stmt(expr); end
     def visit_expression_stmt(expr); end
+    def visit_function_stmt(expr); end
     def visit_if_stmt(expr); end
     def visit_var_stmt(expr); end
     def visit_print_stmt(expr); end
@@ -38,6 +39,24 @@ class Stmt
     # @param visitor [Stmt::Visitor]
     def accept(visitor)
       visitor.visit_expression_stmt(self)
+    end
+  end
+
+  class Function
+    attr_reader :name, :params, :body
+
+    # @param name [Token]
+    # @param params [Array<Token>]
+    # @param body [Stmt]
+    def initialize(name, params, body)
+      @name = name
+      @params = params
+      @body = body
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_function_stmt(self)
     end
   end
 

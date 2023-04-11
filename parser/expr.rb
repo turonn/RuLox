@@ -8,6 +8,7 @@ class Expr
     def visit_assign_expr(expr); end
     def visit_ternary_expr(expr); end
     def visit_binary_expr(expr); end
+    def visit_call_expr(expr); end
     def visit_grouping_expr(expr); end
     def visit_logical_expr(expr); end
     def visit_literal_expr(expr); end
@@ -65,6 +66,24 @@ class Binary < Expr
   # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_binary_expr(self)
+  end
+end
+
+class Call < Expr
+  attr_reader :callee, :paren, :arguments
+
+  # @param callee [Expr]
+  # @param paren [Token]
+  # @param arguments [Array<Expr>]
+  def initialize(callee, paren, arguments)
+    @callee = callee
+    @paren = paren
+    @arguments = arguments
+  end
+
+  # @param visitor [Expr::Visitor]
+  def accept(visitor)
+    visitor.visit_call_expr(self)
   end
 end
 

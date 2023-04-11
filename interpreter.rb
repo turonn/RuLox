@@ -2,13 +2,19 @@ require_relative './environment'
 require_relative './parser/expr'
 require_relative './parser/stmt'
 require_relative './errors/ru_lox_runtime_error'
+require_relative './ru_lox_callable'
+require_relative './ru_lox_function'
 
 class Interpreter
   include Expr::Visitor
   include Stmt::Visitor
 
+  attr_reader :globals
   def initialize
-    @environment = Environment.new
+    @globals = Environment.new
+    @environment = @globals
+
+    _define_native_functions
   end
 
   # @param statements [Array<Stmt>]
@@ -122,6 +128,21 @@ class Interpreter
     end
   end
 
+  # @param expr [Call]
+  def visit_call_expr(expr)
+    callee = _evaluate(expr.callee)
+    raise RuLoxRuntimeError.new(expr.paren, "Can only call functions and classes.") unless callee.is_a? RuLoxCallable
+
+    arguments = expr.arguments.map { |argument| _evaluate(argument) }
+
+    unless callee.arity == arguments.size
+      relevant_plural = callee.arity == 1 ? "argument" : "arguments"
+      raise RuLoxRuntimeError.new(expr.paren, "Expected #{callee.arity} #{relevant_plural} but got #{arguments.size}.")
+    end
+
+    callee.call(self, arguments)
+  end
+
   # @param expr [Expr]
   def visit_assign_expr(expr)
     value = _evaluate(expr.value)
@@ -158,12 +179,18 @@ class Interpreter
 
   # @param block [Stmt]
   def visit_block_stmt(block)
-    _evaluate_block(block, Environment.new(@environment))
+    execute_block(block, Environment.new(@environment))
   end
 
   # @param stmt [Stmt]
   def visit_expression_stmt(stmt)
     _evaluate(stmt.expression)
+  end
+
+  # @param stmt [Stmt::Function]
+  def visit_function_stmt(stmt)
+    function = RuLoxFunction.new(stmt)
+    @environment.define(stmt.name.lexeme, function)
   end
 
   def visit_if_stmt(stmt)
@@ -180,19 +207,7 @@ class Interpreter
     puts _stringify(value)
   end
 
-  private
-
-  # @param statement [Stmt]
-  def _execute(statement)
-    statement.accept(self)
-  end
-
-  # @param expr [Expression]
-  def _evaluate(expr)
-    expr.accept(self)
-  end
-
-  def _evaluate_block(block, environment)
+  def execute_block(block, environment)
     previous_environment = @environment
 
     begin
@@ -203,6 +218,18 @@ class Interpreter
     end
 
     @environment = previous_environment
+  end
+
+  private
+
+  # @param statement [Stmt]
+  def _execute(statement)
+    statement.accept(self)
+  end
+
+  # @param expr [Expression]
+  def _evaluate(expr)
+    expr.accept(self)
   end
 
   # only `false` and `nil` are "falsey"
@@ -242,5 +269,28 @@ class Interpreter
     end
 
     text
+  end
+
+  def _define_native_functions
+    _define_clock
+  end
+
+  def _define_clock
+    clock = RuLoxCallable.new
+    clock.instance_eval do
+      def arity
+        0
+      end
+
+      def call(_interpreter, _arguments)
+        Time.now.to_f
+      end
+
+      def to_s
+        '<native fn>'
+      end
+    end
+
+    @globals.define('clock', clock)
   end
 end

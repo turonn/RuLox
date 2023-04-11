@@ -4,6 +4,12 @@ require_relative 'expr'
 require_relative 'stmt'
 
 class Parser
+  module FunctionKinds
+    ALL = [
+      FUNCTION = "function".freeze
+    ].freeze
+  end
+
   ParseError = Class.new(RuLoxRuntimeError)
 
   # @param tokens [Array[Token]]
@@ -37,12 +43,36 @@ class Parser
 
   def _declaration
     begin
+      return _function(FunctionKinds::FUNCTION) if _match([TokenType::FUN])
       return _var_declaration if _match([TokenType::VAR])
       _statement
     rescue ParseError => error
       _syncronize
       return nil
     end
+  end
+
+  # @param kind [String]
+  def _function(kind)
+    name = _consume(TokenType::IDENTIFIER, "Expect #{kind} name.")
+    _consume(TokenType::LEFT_PAREN, "Expect '(' after #{kind} name.")
+
+    parameters = []
+    unless _check(TokenType::RIGHT_PAREN)
+      parameters << _consume(TokenType::IDENTIFIER, "Expect parameter name.")
+
+      while _match([TokenType::COMMA])
+        _error(_peek, "Can't have more than 255 arguments.") if parameters.size >= 255
+        parameters << _consume(TokenType::IDENTIFIER, "Expect parameter name.")
+      end
+    end
+
+    _consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.")
+
+    _consume(TokenType::LEFT_BRACE, "Expect '{' before #{kind} body.")
+    body = _block_statement
+
+    Stmt::Function.new(name, parameters, body)
   end
 
   def _var_declaration
@@ -290,7 +320,38 @@ class Parser
       return Unary.new(operator, right)
     end
 
-    _primary
+    _call
+  end
+
+  def _call
+    expr = _primary
+
+    while true
+      if _match([TokenType::LEFT_PAREN])
+        expr = _finish_call(expr)
+      else
+        break
+      end
+    end
+
+    expr
+  end
+
+  def _finish_call(callee)
+    arguments = []
+
+    unless _check(TokenType::RIGHT_PAREN)
+      arguments << _expression
+
+      while _match([TokenType::COMMA])
+        _error(_peek, "Can't have more than 255 arguments.") if arguments.size >= 255
+        arguments << _expression
+      end
+    end
+
+    paren = _consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.")
+
+    Call.new(callee, paren, arguments)
   end
 
   def _primary
@@ -345,7 +406,7 @@ class Parser
 
   def _advance
     @current += 1
-    @tokens[@current]
+    _previous
   end
 
   def _consume(token_type, message)
