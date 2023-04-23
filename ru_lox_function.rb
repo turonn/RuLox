@@ -1,9 +1,11 @@
-require 'pry'
+require './errors/return'
 class RuLoxFunction < RuLoxCallable
 
-  # @param declaration [Stmt::Function] the parameters expected
-  def initialize(declaration)
+  # @param declaration [Stmt::Function]
+  # @param closure [Environment]
+  def initialize(declaration, closure)
     @declaration = declaration
+    @closure = closure
   end
   def arity
     @declaration.params.size
@@ -14,12 +16,16 @@ class RuLoxFunction < RuLoxCallable
   end
 
   def call(interpreter, arguments)
-    @environment = Environment.new(interpreter.globals)
+    @environment = Environment.new(@closure)
 
     @declaration.params.each_with_index do |parameter, index|
       @environment.define(parameter.lexeme, arguments[index])
     end
 
-    interpreter.execute_block(@declaration.body, @environment)
+    begin
+      interpreter.execute_block(@declaration.body, @environment)
+    rescue => e
+      e.value
+    end
   end
 end

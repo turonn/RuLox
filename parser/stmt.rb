@@ -11,6 +11,7 @@ class Stmt
     def visit_if_stmt(expr); end
     def visit_var_stmt(expr); end
     def visit_print_stmt(expr); end
+    def visit_return_stmt(expr); end
     def visit_while_stmt(expr); end
   end
 
@@ -48,7 +49,7 @@ class Stmt
     # @param name [Token]
     # @param params [Array<Token>]
     # @param body [Stmt]
-    def initialize(name, params, body)
+    def initialize(params, body, name=nil)
       @name = name
       @params = params
       @body = body
@@ -105,6 +106,22 @@ class Stmt
     # @param visitor [Stmt::Visitor]
     def accept(visitor)
       visitor.visit_print_stmt(self)
+    end
+  end
+
+  class Return
+    attr_reader :keyword, :value
+
+    # @param keyword [Token]
+    # @param value [Expr]
+    def initialize(keyword, value)
+      @keyword = keyword
+      @value = value
+    end
+
+    # @param visitor [Stmt::Visitor]
+    def accept(visitor)
+      visitor.visit_return_stmt(self)
     end
   end
 

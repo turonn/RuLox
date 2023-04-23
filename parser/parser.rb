@@ -1,5 +1,6 @@
 require_relative '../token_type'
 require_relative '../errors/ru_lox_runtime_error'
+require_relative '../errors/return'
 require_relative 'expr'
 require_relative 'stmt'
 
@@ -54,7 +55,11 @@ class Parser
 
   # @param kind [String]
   def _function(kind)
-    name = _consume(TokenType::IDENTIFIER, "Expect #{kind} name.")
+    name = if _check(TokenType::LEFT_PAREN)
+             nil
+           else
+             _consume(TokenType::IDENTIFIER, "Expect #{kind} name.")
+           end
     _consume(TokenType::LEFT_PAREN, "Expect '(' after #{kind} name.")
 
     parameters = []
@@ -72,7 +77,7 @@ class Parser
     _consume(TokenType::LEFT_BRACE, "Expect '{' before #{kind} body.")
     body = _block_statement
 
-    Stmt::Function.new(name, parameters, body)
+    Stmt::Function.new(parameters, body, name)
   end
 
   def _var_declaration
@@ -93,6 +98,7 @@ class Parser
     return _for_statement if _match([TokenType::FOR])
     return _if_statement if _match([TokenType::IF])
     return _print_statement if _match([TokenType::PRINT])
+    return _return_statement if _match([TokenType::RETURN])
     return _while_statement if _match([TokenType::WHILE])
     return _block_statement if _match([TokenType::LEFT_BRACE])
 
@@ -164,6 +170,18 @@ class Parser
     value = _expression
     _consume(TokenType::SEMICOLON, "Expect ';' after value.")
     Stmt::Print.new(value)
+  end
+
+  def _return_statement
+    keyword = _previous
+    value = if _check(TokenType::SEMICOLON)
+              nil
+            else
+              _expression
+            end
+
+    _consume(TokenType::SEMICOLON, "Expect ';' after return value.")
+    Stmt::Return.new(keyword, value)
   end
 
   def _while_statement
@@ -290,18 +308,18 @@ class Parser
   end
 
   def _factor
-    expr = _exponant
+    expr = _exponent
 
     while _match([TokenType::SLASH, TokenType::STAR])
       operator = _previous
-      right = _exponant
+      right = _exponent
       expr = Binary.new(expr, operator, right)
     end
 
     expr
   end
 
-  def _exponant
+  def _exponent
     expr = _unary
 
     while _match([TokenType::CARROT])

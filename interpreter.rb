@@ -2,6 +2,7 @@ require_relative './environment'
 require_relative './parser/expr'
 require_relative './parser/stmt'
 require_relative './errors/ru_lox_runtime_error'
+require_relative './errors/return'
 require_relative './ru_lox_callable'
 require_relative './ru_lox_function'
 
@@ -189,8 +190,8 @@ class Interpreter
 
   # @param stmt [Stmt::Function]
   def visit_function_stmt(stmt)
-    function = RuLoxFunction.new(stmt)
-    @environment.define(stmt.name.lexeme, function)
+    function = RuLoxFunction.new(stmt, @environment)
+    @environment.define(stmt.name.lexeme, function) unless stmt.name.nil?
   end
 
   def visit_if_stmt(stmt)
@@ -207,6 +208,17 @@ class Interpreter
     puts _stringify(value)
   end
 
+  # @param stmt [Stmt::Return]
+  def visit_return_stmt(stmt)
+    value = if stmt.value.nil?
+              nil
+            else
+              _evaluate(stmt.value)
+            end
+
+    raise Return.new(stmt.keyword, value)
+  end
+
   def execute_block(block, environment)
     previous_environment = @environment
 
@@ -214,10 +226,15 @@ class Interpreter
       @environment = environment
       block.statements.each { |stmt| _execute(stmt) }
     rescue => e
+      if e.is_a?(Return)
+        @environment = previous_environment
+        raise e
+      end
       puts e.message
     end
 
     @environment = previous_environment
+    nil
   end
 
   private
