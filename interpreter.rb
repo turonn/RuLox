@@ -157,6 +157,11 @@ class Interpreter
     @environment.get(expr.name)
   end
 
+  # @param expr [Lambda]
+  def visit_lambda_expr(expr)
+    RuLoxFunction.new(expr, @environment)
+  end
+
   # @param stmt [Stmt]
   def visit_var_stmt(stmt)
     value = if stmt.initializer.nil?

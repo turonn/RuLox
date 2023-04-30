@@ -13,6 +13,7 @@ class Expr
     def visit_logical_expr(expr); end
     def visit_literal_expr(expr); end
     def visit_variable_expr(expr); end
+    def visit_lambda_expr(expr); end
     def visit_unary_expr(expr); end
   end
 end
@@ -144,6 +145,22 @@ class Variable < Expr
   # @param visitor [Expr::Visitor]
   def accept(visitor)
     visitor.visit_variable_expr(self)
+  end
+end
+
+class Lambda < Expr
+  attr_reader :params, :body
+
+  # @param params [Array<Token>]
+  # @param body [Stmt::Block]
+  def initialize(params, body)
+    @params = params
+    @body = body
+  end
+
+  # @param visitor [Expr::Visitor]
+  def accept(visitor)
+    visitor.visit_lambda_expr(self)
   end
 end
 

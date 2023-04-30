@@ -1,7 +1,7 @@
 require './errors/return'
 class RuLoxFunction < RuLoxCallable
 
-  # @param declaration [Stmt::Function]
+  # @param declaration Either[Stmt::Function, Lambda]
   # @param closure [Environment]
   def initialize(declaration, closure)
     @declaration = declaration
@@ -12,7 +12,8 @@ class RuLoxFunction < RuLoxCallable
   end
 
   def to_s
-    "<fn #{@declaration.name.lexeme} >"
+    return "<fn #{@declaration.name.lexeme} >" if @declaration.name&.lexeme.present?
+    "<anonymous fn>"
   end
 
   def call(interpreter, arguments)

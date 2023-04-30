@@ -49,7 +49,7 @@ class Stmt
     # @param name [Token]
     # @param params [Array<Token>]
     # @param body [Stmt]
-    def initialize(params, body, name=nil)
+    def initialize(name, params, body)
       @name = name
       @params = params
       @body = body

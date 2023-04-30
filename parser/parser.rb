@@ -77,7 +77,7 @@ class Parser
     _consume(TokenType::LEFT_BRACE, "Expect '{' before #{kind} body.")
     body = _block_statement
 
-    Stmt::Function.new(parameters, body, name)
+    Stmt::Function.new(name, parameters, body)
   end
 
   def _var_declaration
@@ -211,7 +211,32 @@ class Parser
   end
 
   def _expression
-    _assignment
+    if _match([TokenType::FUN])
+      _lambda
+    else
+      _assignment
+    end
+  end
+
+  def _lambda
+    _consume(TokenType::LEFT_PAREN, "Expect '(' after function name.")
+
+    parameters = []
+    unless _check(TokenType::RIGHT_PAREN)
+      parameters << _consume(TokenType::IDENTIFIER, "Expect parameter name.")
+
+      while _match([TokenType::COMMA])
+        _error(_peek, "Can't have more than 255 arguments.") if parameters.size >= 255
+        parameters << _consume(TokenType::IDENTIFIER, "Expect parameter name.")
+      end
+    end
+
+    _consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.")
+
+    _consume(TokenType::LEFT_BRACE, "Expect '{' before lambda body.")
+    body = _block_statement
+
+    Lambda.new(parameters, body)
   end
 
   def _assignment
