@@ -1,8 +1,8 @@
 require_relative 'interpreter'
 require_relative 'scanner'
+require_relative 'resolver'
 require_relative './parser/parser'
 require_relative './parser/ast_printer'
-require 'pry'
 
 class RuLox
   # @param args [Array[String]] command line arguments
@@ -17,7 +17,7 @@ class RuLox
     when 1
       run_file(args.first)
     else
-      puts "Usage: rulox [script]"
+      puts 'Usage: rulox [script]'
     end
   end
 
@@ -33,15 +33,15 @@ class RuLox
 
   def run_prompt
     puts "type 'exit' (without quotes) to exit"
-    puts "now reading input..."
-    while true 
+    puts 'now reading input...'
+    while true
       print '> '
       input = $stdin.gets.chomp
-      break if input == "exit"
+      break if input == 'exit'
 
       begin
         run(input, true)
-      rescue
+      rescue StandardError
       end
 
       # reset error handling while in the interactive mode
@@ -56,13 +56,13 @@ class RuLox
   end
 
   # @param source [String]
-  def run(source, from_repel = false)
+  def run(source, from_repl = false)
     scanner = Scanner.new(source)
     tokens = scanner.scan_tokens
 
     parser = Parser.new(tokens)
 
-    if from_repel && !tokens.any? { |token| token.type == TokenType::SEMICOLON }
+    if from_repl && !tokens.any? { |token| token.type == TokenType::SEMICOLON }
       expression = parser.parse_expression
 
       # stop if tchere was a syntax error
@@ -73,6 +73,12 @@ class RuLox
       statements = parser.parse
 
       # stop if there was a syntax error
+      return if @@had_error
+
+      resolver = Resolver.new(@@interpreter)
+      resolver.resolve_statements(statements)
+
+      # stop if there was a resolution error
       return if @@had_error
 
       @@interpreter.interpret(statements)
@@ -86,13 +92,21 @@ class RuLox
   # @param line [Integer]
   # @param message [String]
   def self.error(line, message)
-    report(line, "", message)
+    report(line, '', message)
   end
 
   # @param token [Token]
   # @param message [String]
   def self.parse_error(token, message)
-    where = token.type == TokenType::EOF ? "at end" :  "at '#{token.lexeme}'"
+    where = token.type == TokenType::EOF ? 'at end' : "at '#{token.lexeme}'"
+
+    report(token.line, where, message)
+  end
+
+  # @param token [Token]
+  # @param message [String]
+  def self.resolver_error(token, message)
+    where = token.type == TokenType::EOF ? 'at end' : "at '#{token.lexeme}'"
 
     report(token.line, where, message)
   end
@@ -100,7 +114,7 @@ class RuLox
   # @param error [RuLoxRuntimeError]
   def self.runtime_error(error)
     token = error.token
-    where = token.type == TokenType::EOF ? "at end" :  "at '#{token.lexeme}'"
+    where = token.type == TokenType::EOF ? 'at end' : "at '#{token.lexeme}'"
 
     puts "[line #{token.line}] Error #{where}: #{error.message}"
     @@had_runtime_error = true

@@ -1,6 +1,7 @@
 require_relative './errors/ru_lox_runtime_error'
 class Environment
   attr_reader :enclosing
+  attr_accessor :values
 
   def initialize(enclosing = nil)
     @values = {}
@@ -23,6 +24,12 @@ class Environment
     raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
   end
 
+  # @param distance [Integer]
+  # @param name [String]
+  def get_at(distance, name)
+    _ancestor(distance).values[name]
+  end
+
   # @param name [Token]
   # @param value [Object]
   def assign(name, value)
@@ -33,5 +40,25 @@ class Environment
     return @enclosing.assign(name, value) unless @enclosing.nil?
 
     raise RuLoxRuntimeError.new(name, "Undefined variable '#{name.lexeme}'.")
+  end
+
+  # @param distance [Integer]
+  # @param name [Token]
+  # @param value [Object]
+  def assign_at(distance, name, value)
+    _ancestor(distance).values[name.lexeme] = value
+  end
+
+  private
+
+  # @param distance [Integer]
+  def _ancestor(distance)
+    environment = self
+
+    distance.times do
+      environment = environment.enclosing
+    end
+
+    environment
   end
 end

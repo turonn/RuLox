@@ -14,8 +14,15 @@ class Interpreter
   def initialize
     @globals = Environment.new
     @environment = @globals
+    @locals = {}
 
     _define_native_functions
+  end
+
+  # @param expr [Expr]
+  # @param depth [Integer]
+  def resolve(expr, depth)
+    @locals[expr] = depth
   end
 
   # @param statements [Array<Stmt>]
@@ -30,7 +37,6 @@ class Interpreter
   def interpret_expression(expression)
     begin
       value = _evaluate(expression)
-      # binding.pry
       puts _stringify(value)
     rescue RuLoxRuntimeError => error
       RuLox.runtime_error(error)
@@ -132,6 +138,7 @@ class Interpreter
   # @param expr [Call]
   def visit_call_expr(expr)
     callee = _evaluate(expr.callee)
+    puts expr.inspect
     raise RuLoxRuntimeError.new(expr.paren, "Can only call functions and classes.") unless callee.is_a? RuLoxCallable
 
     arguments = expr.arguments.map { |argument| _evaluate(argument) }
@@ -147,14 +154,20 @@ class Interpreter
   # @param expr [Expr]
   def visit_assign_expr(expr)
     value = _evaluate(expr.value)
-    @environment.assign(expr.name, value)
+
+    distance = @locals[expr]
+    if distance.nil?
+      @globals.assign(expr.name, value)
+    else
+      @environment.assign_at(distance, expr.name, value)
+    end
 
     value
   end
 
-  # @param expr [Expr]
+  # @param expr [Expr::Variable]
   def visit_variable_expr(expr)
-    @environment.get(expr.name)
+    _lookup_variable(expr.name, expr)
   end
 
   # @param expr [Lambda]
@@ -243,6 +256,18 @@ class Interpreter
   end
 
   private
+
+  # @param name [Token]
+  # @param expr [Expr]
+  def _lookup_variable(name, expr)
+    distance = @locals[expr]
+
+    if distance.nil?
+      @globals.get(name)
+    else
+      @environment.get_at(distance, name.lexeme)
+    end
+  end
 
   # @param statement [Stmt]
   def _execute(statement)
